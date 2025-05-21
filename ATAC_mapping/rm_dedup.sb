@@ -1,0 +1,40 @@
+#!/bin/bash --login
+#SBATCH --nodes=8
+#SBATCH --ntasks-per-node=6
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=96GB
+#SBATCH --time=03:00:00
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=zhouzeh2@msu.edu
+#SBATCH --output=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_bam/out/%x-%j.SLURMout
+echo “This script is to remove duplicates and unevenly mapped things.”
+# Purge current modules and load required ones
+module purge
+module load SAMtools/1.18-GCC-12.3.0
+module load picard/2.25.1-Java-11
+module load parallel/20230722-GCCcore-12.3.0
+module load deepTools/3.5.5-foss-2023a
+
+# Debugging: Print environment and paths
+echo “Current directory: $(pwd)”
+echo “Files in directory:”
+ls -lh
+echo “EBROOTPICARD: $EBROOTPICARD”
+# Change to the directory containing BAM files
+cd /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_bam
+# Remove mitochondrial reads
+parallel 'samtools view -h {} | python /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/script/ATAC_mapping/removeChrom.py - - MT | samtools view -b - > {.}_no_mito.bam' ::: *_sorted.bam   
+
+
+parallel 'samtools sort -o {.}_resorted.bam {}' ::: *_no_mito.bam
+# Mark duplicates using Picard
+parallel --jobs 3 'java -Xmx32G -jar $EBROOTPICARD/picard.jar MarkDuplicates -I {} -O {.}_no_dup.bam -M {.}_dups.txt -REMOVE_DUPLICATES true' ::: *_no_mito_resorted.bam
+# #remove non-uniquely-mapped reads from all ATAC reads
+parallel 'samtools view -b -q 10 {} > {.}_uniq.bam' ::: *_sorted_no_mito_resorted_no_dup.bam
+## index filtered bam files for ATAC reads
+parallel 'samtools index {}' ::: *_sorted_no_mito_resorted_no_dup_uniq.bam
+#bam2bigwig for ATAC
+parallel 'bamCoverage -b {} -of bigwig --normalizeUsing BPM --ignoreForNormalization MT --binSize 25 --effectiveGenomeSize 1200570847 -o {}.bw' ::: *_sorted_no_mito_resorted_no_dup_uniq.bam
+#peak calling
+parallel 'samtools sort -n {} -o {.}_query.bam' ::: *_sorted_no_mito_resorted_no_dup_uniq.bam
+parallel '/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/software/genrich/Genrich/Genrich  -t {} -j -q 0.05  -o Genrich_{} -k {}_pileup' ::: *_query.bam
