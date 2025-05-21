@@ -1,0 +1,67 @@
+#!/bin/bash --login
+
+
+# Number of nodes
+#SBATCH --nodes=8
+
+# Number of tasks to run on each node
+#SBATCH --ntasks-per-node=6
+
+# Number of CPUs per task
+#SBATCH --cpus-per-task=4
+
+# Memory per Node
+# Specify "M" or "G" for MB and GB respectively
+#SBATCH --mem=4G
+
+# Wall time
+# Format: "minutes", "hours:minutes:seconds", 
+# "days-hours", or "days-hours:minutes"
+#SBATCH --time=03:00:00
+
+# Mail type
+# e.g., which events trigger email notifications
+#SBATCH --mail-type=ALL
+
+# Mail address
+#SBATCH --mail-user=zhouzeh2@msu.edu
+
+# Standard output and error to file
+# %x: job name, %j: job ID
+#SBATCH --output=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_qc/out/%x-%j.SLURMout
+
+echo "This script to do quality control after trimming the reads."
+
+# Purge current modules and load those we require
+module purge
+module load BBMap/39.01-GCC-12.3.0  
+
+
+# Run our job
+cd /mnt/research/FishEvoDevoGeno/raw_reads_4_tony
+
+bash bbduk.sh \
+in1=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim/st_31_32_3_2NOADAPTER.fq \
+in2=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim/st_31_32_3_1NOADAPTER.fq \
+out1=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_qc/st_31_32_3_2clean.fq \
+out2=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_qc/st_31_32_3_1clean.fq maq=10
+
+bash bbduk.sh \
+in1=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim/st_31_32_2_2NOADAPTER.fq \
+in2=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim/st_31_32_2_1NOADAPTER.fq \
+out1=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_qc/st_31_32_2_2clean.fq \
+out2=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_qc/st_31_32_2_1clean.fq maq=10
+
+bash bbduk.sh \
+in1=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim/st_31_32_1_2NOADAPTER.fq \
+in2=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim/st_31_32_1_1NOADAPTER.fq \
+out1=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_qc/st_31_32_1_2clean.fq \
+out2=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_qc/st_31_32_1_1clean.fq maq=10
+
+# You MUST specify the number of CPUs per task again.
+# Alternatively, you can set OMP_NUM_THREADS
+srun -c $SLURM_CPUS_PER_TASK script/
+
+# Print resource information
+scontrol show job $SLURM_JOB_ID
+js -j $SLURM_JOB_ID 

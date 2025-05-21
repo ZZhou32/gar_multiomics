@@ -1,0 +1,63 @@
+#!/bin/bash --login
+
+# Number of nodes
+#SBATCH --nodes=8
+
+# Number of tasks to run on each node
+#SBATCH --ntasks-per-node=6
+
+# Number of CPUs per task
+#SBATCH --cpus-per-task=4
+
+# Memory per Node
+# Specify "M" or "G" for MB and GB respectively
+#SBATCH --mem=8G
+
+# Wall time
+# Format: "minutes", "hours:minutes:seconds", 
+# "days-hours", or "days-hours:minutes"
+#SBATCH --time=03:00:00
+
+# Mail type
+# e.g., which events trigger email notifications
+#SBATCH --mail-type=ALL
+
+# Mail address
+#SBATCH --mail-user=zhouzeh2@msu.edu
+
+# Standard output and error to file
+# %x: job name, %j: job ID
+#SBATCH --output=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_qc/out/%x-%j.SLURMout
+
+echo "This script to index genome with Bowtie2 and map the ATAC reads."
+## 'module spider bowtie2'
+# Purge current modules and load those we require
+
+module purge
+module load Bowtie2/2.5.1-GCC-12.3.0
+module load SAMtools/1.18-GCC-12.3.0
+
+
+
+# Run our job
+cd /mnt/research/FishEvoDevoGeno/raw_reads_4_tony
+#index genome
+bowtie2-build GCF_040954835.1_fLepOcu1.hap2_genomic.fna /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/index_genome/fLepOcu1hap2
+
+#index masked genome
+#map all ATAC reads and convert and sort bam
+for sample in `ls /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_qc/*_R1clean.fq`
+do
+dir="/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_qc"
+output_dir="/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_bam"
+
+base=$(basename $sample "_R1clean.fq")
+bowtie2 --very-sensitive -x /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/index_genome/fLepOcu1hap2 -1 ${dir}/${base}_R1clean.fq -2 ${dir}/${base}_R2clean.fq | samtools view -u | samtools sort >> ${output_dir}/${base}_sorted.bam
+done
+
+## Systematically check the bam files quality.
+samtools quickcheck -v *.bam > bad_bams.fofn   && echo 'all ok' || echo 'some files failed check, see bad_bams.fofn'
+
+
+
+``

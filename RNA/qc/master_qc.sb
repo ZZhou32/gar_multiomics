@@ -1,0 +1,13 @@
+#!/bin/bash --login
+# Master script to submit multiple jobs
+
+sbatch script/qc/33_34_qc.sb
+sbatch script/qc/32_33_qc.sb
+sbatch script/qc/31_32_qc.sb
+sbatch script/qc/30_31_qc.sb
+sbatch script/qc/29_29_qc.sb
+sbatch script/qc/27_28_qc.sb
+sbatch script/qc/25_26_qc.sb
+sbatch script/qc/24_25_qc.sb
+sbatch script/qc/22_23_qc.sb
+sbatch script/qc/21_22_qc.sb
