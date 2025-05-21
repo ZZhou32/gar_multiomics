@@ -35,6 +35,7 @@ parallel 'samtools view -b -q 10 {} > {.}_uniq.bam' ::: *_sorted_no_mito_resorte
 parallel 'samtools index {}' ::: *_sorted_no_mito_resorted_no_dup_uniq.bam
 #bam2bigwig for ATAC
 parallel 'bamCoverage -b {} -of bigwig --normalizeUsing BPM --ignoreForNormalization MT --binSize 25 --effectiveGenomeSize 1200570847 -o {}.bw' ::: *_sorted_no_mito_resorted_no_dup_uniq.bam
+
 #peak calling
 parallel 'samtools sort -n {} -o {.}_query.bam' ::: *_sorted_no_mito_resorted_no_dup_uniq.bam
-parallel '/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/software/genrich/Genrich/Genrich  -t {} -j -q 0.05  -o Genrich_{} -k {}_pileup' ::: *_query.bam
+parallel '/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/software/genrich/Genrich/Genrich  -t {} -j -q 0.1  -o Genrich_{}.narrowPeak -k {}_pileup' ::: *_sorted_no_mito_resorted_no_dup_uniq_query.bam

@@ -1,0 +1,19 @@
+#!/bin/bash --login
+#SBATCH --nodes=8
+#SBATCH --ntasks-per-node=6
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=96GB
+#SBATCH --time=03:00:00
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=zhouzeh2@msu.edu
+#SBATCH --output=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_bam/out/%x-%j.SLURMout
+echo “This script is to test Genrich.”
+# Purge current modules and load required ones
+module purge
+module load SAMtools/1.18-GCC-12.3.0
+module load picard/2.25.1-Java-11
+module load parallel/20230722-GCCcore-12.3.0
+
+cd /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_bam
+
+/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/software/genrich/Genrich/Genrich  -t Gar_ATAC_head_heart_30-31_sorted_no_mito_resorted_no_dup_uniq_query.bam -j -q 0.05  -o Genrich_q0.05.narrowPeak -k test_pileup 
