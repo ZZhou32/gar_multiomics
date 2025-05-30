@@ -1,0 +1,218 @@
+#!/bin/bash --login
+#SBATCH --time=03:00:00
+echo "=== PROPERLY INSTALLING FASTP ==="
+echo "Date: $(date)"
+echo "================================="
+
+# Step 1: Clean up broken installation
+echo "1. Cleaning up previous broken installation..."
+rm -f ~/bin/fastp ~/bin/fastp-wrapper
+rm -rf ~/fastp_build ~/local
+
+# Step 2: Choose the best installation method
+echo "2. Choosing installation method..."
+echo ""
+echo "OPTIONS:"
+echo "A) Use conda (recommended - always works)"
+echo "B) Try compilation again with fixes"
+echo "C) Download pre-compiled binary"
+echo ""
+
+read -p "Choose option (A/B/C): " choice
+
+case $choice in
+    [Aa])
+        echo "Installing via conda (recommended)..."
+        
+        # Initialize conda
+        source /mnt/home/zhouzeh2/anaconda3/etc/profile.d/conda.sh
+        conda activate base
+        
+        # Install latest available fastp
+        echo "Installing fastp via conda..."
+        conda install -c bioconda fastp -y
+        
+        # Test installation
+        if command -v fastp >/dev/null 2>&1; then
+            echo "✓ fastp installed successfully via conda"
+            echo "Version: $(fastp --version 2>&1 | head -1)"
+            echo "Location: $(which fastp)"
+            
+            # Create symlink for consistency
+            mkdir -p ~/bin
+            ln -sf "$(which fastp)" ~/bin/fastp
+            echo "✓ Created symlink at ~/bin/fastp"
+            
+        else
+            echo "✗ Conda installation failed"
+            exit 1
+        fi
+        ;;
+        
+    [Bb])
+        echo "Trying compilation with fixes..."
+        
+        # Create build directory
+        mkdir -p ~/fastp_build
+        cd ~/fastp_build
+        
+        # Load required modules
+        module load GCC 2>/dev/null || true
+        module load Git 2>/dev/null || true
+        
+        # Download fastp source (latest stable version)
+        echo "Downloading fastp v0.23.4 (stable)..."
+        if ! git clone --depth 1 -b v0.23.4 https://github.com/OpenGene/fastp.git; then
+            echo "Git clone failed, trying wget..."
+            wget https://github.com/OpenGene/fastp/archive/refs/tags/v0.23.4.tar.gz
+            tar -xzf v0.23.4.tar.gz
+            mv fastp-0.23.4 fastp
+        fi
+        
+        cd fastp
+        
+        # Simple compilation without problematic libraries
+        echo "Compiling fastp (simplified version)..."
+        
+        # Create simple Makefile
+        cat > Makefile.simple << 'EOF'
+CXX = g++
+CXXFLAGS = -std=c++11 -pthread -O3 -I./inc
+LIBS = -lz -lpthread
+TARGET = fastp
+SRCDIR = src
+SOURCES = $(wildcard $(SRCDIR)/*.cpp)
+OBJECTS = $(SOURCES:.cpp=.o)
+
+$(TARGET): $(OBJECTS)
+	$(CXX) $(OBJECTS) -o $@ $(LIBS)
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+clean:
+	rm -f $(OBJECTS) $(TARGET)
+
+.PHONY: clean
+EOF
+        
+        # Compile
+        if make -f Makefile.simple -j4; then
+            echo "✓ Compilation successful"
+            
+            # Test the binary
+            if ./fastp --version; then
+                echo "✓ fastp is working"
+                
+                # Install
+                mkdir -p ~/bin
+                cp fastp ~/bin/
+                chmod +x ~/bin/fastp
+                echo "✓ Installed to ~/bin/fastp"
+                
+            else
+                echo "✗ Compiled binary doesn't work"
+                exit 1
+            fi
+        else
+            echo "✗ Compilation failed"
+            exit 1
+        fi
+        ;;
+        
+    [Cc])
+        echo "Downloading pre-compiled binary..."
+        
+        mkdir -p ~/bin
+        cd ~/bin
+        
+        # Try different pre-compiled versions
+        BINARY_URLS=(
+            "https://github.com/OpenGene/fastp/releases/download/v0.23.4/fastp.Linux"
+            "https://github.com/OpenGene/fastp/releases/download/v0.23.2/fastp"
+        )
+        
+        for url in "${BINARY_URLS[@]}"; do
+            echo "Trying: $url"
+            
+            if wget -O fastp "$url"; then
+                chmod +x fastp
+                
+                # Test the binary
+                if ./fastp --version; then
+                    echo "✓ Pre-compiled binary works!"
+                    echo "Version: $(./fastp --version 2>&1 | head -1)"
+                    break
+                else
+                    echo "✗ This binary doesn't work on this system"
+                    rm -f fastp
+                fi
+            else
+                echo "✗ Download failed"
+            fi
+        done
+        
+        if [[ ! -f "fastp" ]]; then
+            echo "✗ No working pre-compiled binary found"
+            exit 1
+        fi
+        ;;
+        
+    *)
+        echo "Invalid choice, defaulting to conda..."
+        source /mnt/home/zhouzeh2/anaconda3/etc/profile.d/conda.sh
+        conda activate base
+        conda install -c bioconda fastp -y
+        ;;
+esac
+
+echo ""
+echo "=== FINAL VERIFICATION ==="
+
+# Test the installation
+if [[ -f ~/bin/fastp ]]; then
+    echo "fastp binary location: ~/bin/fastp"
+    
+    # Test basic functionality
+    if ~/bin/fastp --version; then
+        echo "✓ fastp --version works"
+        VERSION=$(~/bin/fastp --version 2>&1 | head -1)
+        echo "Version: $VERSION"
+        
+        # Test help command
+        if ~/bin/fastp --help >/dev/null 2>&1; then
+            echo "✓ fastp --help works"
+        fi
+        
+        # File info
+        echo "Binary info:"
+        ls -lh ~/bin/fastp
+        file ~/bin/fastp
+        
+        echo ""
+        echo "🎉 SUCCESS! fastp is properly installed and working!"
+        echo ""
+        echo "Now you can use it in your SLURM scripts with:"
+        echo "FASTP_PATH=\"\$HOME/bin/fastp\""
+        echo "\"\$FASTP_PATH\" -i input1.fq.gz -I input2.fq.gz ..."
+        
+    else
+        echo "✗ fastp still doesn't work properly"
+        echo "Try the conda option (most reliable)"
+    fi
+else
+    echo "✗ No fastp binary found"
+    
+    # Check conda version
+    source /mnt/home/zhouzeh2/anaconda3/etc/profile.d/conda.sh 2>/dev/null
+    conda activate base 2>/dev/null
+    
+    if command -v fastp >/dev/null 2>&1; then
+        echo "✓ Conda fastp is available as fallback"
+        echo "Location: $(which fastp)"
+        echo "Version: $(fastp --version 2>&1 | head -1)"
+    fi
+fi
+
+echo ""
+echo "Installation process completed!"

@@ -1,0 +1,93 @@
+#!/bin/bash --login
+
+#SBATCH --job-name=st_27_28_3__fastp_job
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=64G
+#SBATCH --time=04:00:00
+#SBATCH --mail-user=zhouzeh2@msu.edu
+#SBATCH --output=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim/out/%x-%j.SLURMout
+#SBATCH --error=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim/out/%x-%j.SLURMerr
+
+echo "Processing: st_27_28_3_"
+echo "Job started at: $(date)"
+
+# File paths
+in1="/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA/st_27_28_3_1.fq.gz"
+in2="/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA/st_27_28_3_2.fq.gz"
+out1="/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim/st_27_28_3__1NOADAPTERR.fq.gz"
+out2="/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim/st_27_28_3__2NOADAPTERR.fq.gz"
+html_report="/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim/st_27_28_3__fastp_report.html"
+json_report="/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim/st_27_28_3__fastp_report.json"
+
+# Create output directory
+mkdir -p /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim
+
+echo "Input file sizes:"
+ls -lh "$in1" "$in2"
+
+# Set up fastp environment (custom installation)
+export PATH=/mnt/home/zhouzeh2/software/bin:$PATH
+export LD_LIBRARY_PATH=/mnt/home/zhouzeh2/software/lib:$LD_LIBRARY_PATH
+
+echo "Memory before processing:"
+free -h
+
+echo "Using fastp version:"
+fastp --version
+
+# Verify input files exist
+echo "Verifying input files..."
+if [[ ! -f "$in1" ]]; then
+    echo "ERROR: Input R1 file not found: $in1"
+    exit 1
+fi
+
+if [[ ! -f "$in2" ]]; then
+    echo "ERROR: Input R2 file not found: $in2"
+    exit 1
+fi
+
+echo "✓ Both input files verified"
+
+# Run fastp with minimal, safe settings (matching working script)
+fastp \
+    --in1 "$in1" \
+    --in2 "$in2" \
+    --out1 "$out1" \
+    --out2 "$out2" \
+    --html "$html_report" \
+    --json "$json_report" \
+    --detect_adapter_for_pe \
+    --cut_tail \
+    --cut_window_size=4 \
+    --cut_mean_quality=20 \
+    --qualified_quality_phred=20 \
+    --length_required=36 \
+    --thread=1 \
+    --compression=1
+
+if [[ $? -eq 0 ]]; then
+    echo "✓ fastp completed successfully"
+    echo "Output files:"
+    ls -lh "$out1" "$out2"
+    echo "Reports:"
+    ls -lh "$html_report" "$json_report"
+    
+    # Get read counts
+    INPUT_READS=$(zcat "$in1" | wc -l | awk '{print int($1/4)}')
+    OUTPUT_READS=$(zcat "$out1" | wc -l | awk '{print int($1/4)}')
+    echo "Input reads: $INPUT_READS"
+    echo "Output reads: $OUTPUT_READS"
+    
+    if [[ $INPUT_READS -gt 0 ]]; then
+        RETENTION=$(echo "scale=1; $OUTPUT_READS * 100 / $INPUT_READS" | bc)
+        echo "Retention rate: $RETENTION%"
+    fi
+else
+    echo "✗ fastp failed"
+    exit 1
+fi
+
+echo "Job completed: $(date)"

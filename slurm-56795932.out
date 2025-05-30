@@ -1,0 +1,123 @@
+Submitting st_21_22_1_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 8: sbatch: command not found
+Job submitted for st_21_22_1_
+/var/lib/slurmd/job56795932/slurm_script: line 10: sleep: command not found
+Submitting st_21_22_2_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 13: sbatch: command not found
+Job submitted for st_21_22_2_
+/var/lib/slurmd/job56795932/slurm_script: line 15: sleep: command not found
+Submitting st_21_22_3_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 18: sbatch: command not found
+Job submitted for st_21_22_3_
+/var/lib/slurmd/job56795932/slurm_script: line 20: sleep: command not found
+Submitting st_22_23_1_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 23: sbatch: command not found
+Job submitted for st_22_23_1_
+/var/lib/slurmd/job56795932/slurm_script: line 25: sleep: command not found
+Submitting st_22_23_2_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 28: sbatch: command not found
+Job submitted for st_22_23_2_
+/var/lib/slurmd/job56795932/slurm_script: line 30: sleep: command not found
+Submitting st_22_23_3_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 33: sbatch: command not found
+Job submitted for st_22_23_3_
+/var/lib/slurmd/job56795932/slurm_script: line 35: sleep: command not found
+Submitting st_24_25_1_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 38: sbatch: command not found
+Job submitted for st_24_25_1_
+/var/lib/slurmd/job56795932/slurm_script: line 40: sleep: command not found
+Submitting st_24_25_2_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 43: sbatch: command not found
+Job submitted for st_24_25_2_
+/var/lib/slurmd/job56795932/slurm_script: line 45: sleep: command not found
+Submitting st_24_25_3_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 48: sbatch: command not found
+Job submitted for st_24_25_3_
+/var/lib/slurmd/job56795932/slurm_script: line 50: sleep: command not found
+Submitting st_25_25_1_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 53: sbatch: command not found
+Job submitted for st_25_25_1_
+/var/lib/slurmd/job56795932/slurm_script: line 55: sleep: command not found
+Submitting st_25_25_2_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 58: sbatch: command not found
+Job submitted for st_25_25_2_
+/var/lib/slurmd/job56795932/slurm_script: line 60: sleep: command not found
+Submitting st_25_25_3_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 63: sbatch: command not found
+Job submitted for st_25_25_3_
+/var/lib/slurmd/job56795932/slurm_script: line 65: sleep: command not found
+Submitting st_27_28_1_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 68: sbatch: command not found
+Job submitted for st_27_28_1_
+/var/lib/slurmd/job56795932/slurm_script: line 70: sleep: command not found
+Submitting st_27_28_2_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 73: sbatch: command not found
+Job submitted for st_27_28_2_
+/var/lib/slurmd/job56795932/slurm_script: line 75: sleep: command not found
+Submitting st_27_28_3_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 78: sbatch: command not found
+Job submitted for st_27_28_3_
+/var/lib/slurmd/job56795932/slurm_script: line 80: sleep: command not found
+Submitting st_29_29_1_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 83: sbatch: command not found
+Job submitted for st_29_29_1_
+/var/lib/slurmd/job56795932/slurm_script: line 85: sleep: command not found
+Submitting st_29_29_2_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 88: sbatch: command not found
+Job submitted for st_29_29_2_
+/var/lib/slurmd/job56795932/slurm_script: line 90: sleep: command not found
+Submitting st_29_29_3_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 93: sbatch: command not found
+Job submitted for st_29_29_3_
+/var/lib/slurmd/job56795932/slurm_script: line 95: sleep: command not found
+Submitting st_30_31_1_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 98: sbatch: command not found
+Job submitted for st_30_31_1_
+/var/lib/slurmd/job56795932/slurm_script: line 100: sleep: command not found
+Submitting st_30_31_2_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 103: sbatch: command not found
+Job submitted for st_30_31_2_
+/var/lib/slurmd/job56795932/slurm_script: line 105: sleep: command not found
+Submitting st_30_31_3_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 108: sbatch: command not found
+Job submitted for st_30_31_3_
+/var/lib/slurmd/job56795932/slurm_script: line 110: sleep: command not found
+Submitting st_31_32_1_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 113: sbatch: command not found
+Job submitted for st_31_32_1_
+/var/lib/slurmd/job56795932/slurm_script: line 115: sleep: command not found
+Submitting st_31_32_2_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 118: sbatch: command not found
+Job submitted for st_31_32_2_
+/var/lib/slurmd/job56795932/slurm_script: line 120: sleep: command not found
+Submitting st_31_32_3_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 123: sbatch: command not found
+Job submitted for st_31_32_3_
+/var/lib/slurmd/job56795932/slurm_script: line 125: sleep: command not found
+Submitting st_32_33_1_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 128: sbatch: command not found
+Job submitted for st_32_33_1_
+/var/lib/slurmd/job56795932/slurm_script: line 130: sleep: command not found
+Submitting st_32_33_2_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 133: sbatch: command not found
+Job submitted for st_32_33_2_
+/var/lib/slurmd/job56795932/slurm_script: line 135: sleep: command not found
+Submitting st_32_33_3_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 138: sbatch: command not found
+Job submitted for st_32_33_3_
+/var/lib/slurmd/job56795932/slurm_script: line 140: sleep: command not found
+Submitting st_33_34_1_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 143: sbatch: command not found
+Job submitted for st_33_34_1_
+/var/lib/slurmd/job56795932/slurm_script: line 145: sleep: command not found
+Submitting st_33_34_2_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 148: sbatch: command not found
+Job submitted for st_33_34_2_
+/var/lib/slurmd/job56795932/slurm_script: line 150: sleep: command not found
+Submitting st_33_34_3_ RNA-seq trimming job...
+/var/lib/slurmd/job56795932/slurm_script: line 153: sbatch: command not found
+Job submitted for st_33_34_3_
+/var/lib/slurmd/job56795932/slurm_script: line 155: sleep: command not found
+All 30 RNA-seq trimming jobs submitted!
+Monitor with: squeue -u $USER
+Check logs in: /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim/out/
