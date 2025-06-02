@@ -1,0 +1,15 @@
+#!/bin/bash --login
+
+#SBATCH --job-name=st_21_22_1__fastp_job
+#SBATCH --nodes=8
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=64G
+#SBATCH --time=04:00:00
+#SBATCH --mail-user=zhouzeh2@msu.edu
+#SBATCH --output=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim/out/%x-%j.SLURMout
+#SBATCH --error=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim/out/%x-%j.SLURMerr
+
+cd /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/salmon_prep
+conda activate salmon 
+salmon index -t gentrome_fixed.fa.gz --decoys decoys_fixed.txt -i salmon_index --gencode -k 31 -p 8

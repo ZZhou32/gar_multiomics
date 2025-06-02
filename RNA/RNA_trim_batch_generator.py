@@ -50,6 +50,13 @@ def find_paired_files_and_bases(folder_path):
         print(f"\nPaired samples found:")
         for base_name in sorted(paired_files.keys()):
             print(f"  - {base_name}")
+        
+        # Write base names to RNA_base_names.txt file
+        base_names_file = os.path.join(os.path.dirname(folder_path), "RNA_base_names.txt")
+        with open(base_names_file, "w") as f:
+            for base_name in sorted(paired_files.keys()):
+                f.write(f"{base_name}\n")
+        print(f"\nRNA base names written to: {base_names_file}")
     
     return paired_files
 
@@ -240,6 +247,13 @@ def preview_batch_generation(folder_path):
             print(f"    R1: {file_info['R1']}")
             print(f"    R2: {file_info['R2']}")
             print()
+        
+        # Write base names to a file during preview
+        base_names_file = os.path.join(os.path.dirname(folder_path), "RNA_base_names_preview.txt")
+        with open(base_names_file, "w") as f:
+            for base_name in sorted(paired_files.keys()):
+                f.write(f"{base_name}\n")
+        print(f"RNA base names written to: {base_names_file}")
     
     return len(paired_files)
 
