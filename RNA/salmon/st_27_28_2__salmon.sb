@@ -61,6 +61,7 @@ echo "✓ Both input files and index verified"
 salmon quant -i "$salmon_index" -l A \
     -1 "$in1" \
     -2 "$in2" \
+    -- gcBias \
     -p 8 --validateMappings -o "$output_dir"
 
 if [[ $? -eq 0 ]]; then

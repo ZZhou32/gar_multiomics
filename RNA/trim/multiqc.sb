@@ -1,0 +1,17 @@
+#!/bin/bash --login
+
+#SBATCH --job-name=multiqc
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=64G
+#SBATCH --time=04:00:00
+#SBATCH --mail-user=zhouzeh2@msu.edu
+#SBATCH --output=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim/out/%x-%j.SLURMout
+#SBATCH --error=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim/out/%x-%j.SLURMerr
+
+module purge
+module load  MultiQC/1.14-foss-2022b
+
+cd /mnt/research/FishEvoDevoGeno/raw_reads_4_tony
+multiqc .

@@ -1,8 +1,14 @@
 #!/bin/bash --login
 
-# Master script to submit all RNA-seq trimming jobs
-# Generated for 30 paired samples
-# Source folder: /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA
+#SBATCH --job-name=master_rna_trim
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=64G
+#SBATCH --time=04:00:00
+#SBATCH --mail-user=zhouzeh2@msu.edu
+#SBATCH --output=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim/out/%x-%j.SLURMout
+#SBATCH --error=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim/out/%x-%j.SLURMerr
 
 echo 'Submitting st_21_22_1_ RNA-seq trimming job...'
 sbatch /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/script/RNA/trim/st_21_22_1__trim.sb

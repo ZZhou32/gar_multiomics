@@ -1,11 +1,5 @@
 #!/bin/bash --login
-#SBATCH --job-name=master_salmon_quant
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=32G
-#SBATCH --time=06:00:00
-#SBATCH --mail-user=zhouzeh2@msu.edu
+
 # Master script to submit all Salmon quantification jobs
 # Generated for 30 paired samples
 # Source folder: /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim

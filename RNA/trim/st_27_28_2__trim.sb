@@ -65,6 +65,7 @@ fastp \
     --cut_mean_quality=20 \
     --qualified_quality_phred=20 \
     --length_required=36 \
+    --dedup \
     --thread=1 \
     --compression=1
 
