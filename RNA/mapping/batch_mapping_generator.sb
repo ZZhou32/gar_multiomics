@@ -1,0 +1,69 @@
+#!/bin/bash --login
+
+# ===== USER CONFIGURATION =====
+input_dir="/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_trim"
+genome_index="/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/index_genome/fLepOcu1hap2"   # UPDATE THIS
+output_dir="/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/RNA_bam"          # UPDATE THIS
+script_dir="/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/script/RNA/mapping"       # UPDATE THIS (where .sbatch files go)
+
+# ===== SETUP DIRECTORIES =====
+mkdir -p "$output_dir" "$script_dir" || exit 1
+cd "$input_dir" || { echo "Failed to cd to $input_dir"; exit 1; }
+
+# ===== GENERATE INDIVIDUAL SBATCH FILES =====
+for sample in *_1NOADAPTERR.fq.gz; do
+    base=$(basename "$sample" "_1NOADAPTERR.fq.gz")
+    R1="$input_dir/${base}_1NOADAPTERR.fq.gz"
+    R2="$input_dir/${base}_2NOADAPTERR.fq.gz"
+    sbatch_file="$script_dir/${base}_RNA_mapping.sbatch"
+
+    # Write the individual SBATCH file
+    cat > "$sbatch_file" << EOF
+#!/bin/bash --login
+#SBATCH --job-name=${base}_align
+#SBATCH --output=${script_dir}/${base}_%j.out
+#SBATCH --error=${script_dir}/${base}_%j.err
+#SBATCH --time=04:00:00
+#SBATCH --mem=16GB
+#SBATCH --cpus-per-task=4
+
+module purge
+
+module load Bowtie2/2.5.1-GCC-12.3.0
+module load SAMtools/1.18-GCC-12.3.0
+
+echo "Processing sample: $base"
+bowtie2 --very-sensitive -x $genome_index -1 $R1 -2 $R2 | \
+samtools view -u | samtools sort -o $output_dir/${base}_sorted.bam 
+echo "Finished alignment for $base"
+EOF
+    echo "Generated: $sbatch_file"
+done
+
+# ===== GENERATE TRIGGER SBATCH FILE (submit_all.sbatch) =====
+trigger_file="$script_dir/submit_all.sbatch"
+cat > "$trigger_file" << EOF
+#!/bin/bash
+#SBATCH --job-name=submit_all
+#SBATCH --output=${script_dir}/submit_all_%j.out
+#SBATCH --error=${script_dir}/submit_all_%j.err
+#SBATCH --time=5:00
+#SBATCH --mem=1G
+#SBATCH --partition=debug  # Adjust if needed
+
+# Submit all individual jobs
+for job in "$script_dir"/*RNA_mapping.sbatch; do
+    if [[ "\$job" != "$trigger_file" ]]; then  # Avoid submitting itself
+        echo "Submitting \$job"
+        sbatch "\$job"
+    fi
+done
+echo "All jobs submitted!"
+EOF
+
+# ===== FINAL MESSAGE =====
+echo -e "\n=== Script generation complete ==="
+echo "Individual SBATCH files created in: $script_dir/"
+echo "Trigger file created: $trigger_file"
+echo -e "\nTo submit ALL jobs, run:"
+echo "sbatch $trigger_file"

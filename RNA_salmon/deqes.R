@@ -109,6 +109,9 @@ resLFC
 plotMA(resLFC, ylim=c(-2,2))
 
 
+res_specific <- results(dds, contrast=c("stages", "29_29", "30_31"))
+glimmaVolcano(dds_1, dge=res_specific, groups=dds_1$stages)
+
 ## ggplot2 (looking cute)
 library(ggplot2)
 library(ggrepel)

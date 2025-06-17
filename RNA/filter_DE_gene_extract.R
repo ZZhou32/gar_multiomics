@@ -152,10 +152,10 @@ extract_gene_positions <- function(csv_file, gar_gff_file, output_file = "genes_
 csv_file <- "/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/example_29_30/2929-3031.csv"
 
 # Gar genome annotation file (GFF3 or GTF format)
-gar_gff_file <- "/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/gar_genome.gff3"
+gar_gff_file <- "/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/GCF_040954835.1_fLepOcu1.hap2_genomic.gtf"
 
 # Output file for genes of interest
-output_file <- "/mnt/ufs18/rs-032/FishEvoDevoGeno/raw_reads_4_tony/salmon_quant/genes_of_interest.gff3"
+output_file <- "/mnt/ufs18/rs-032/FishEvoDevoGeno/raw_reads_4_tony/example_29_30/genes_of_interest.gff3"
 
 # ===================================================================
 # MAIN EXECUTION - NO NEED TO MODIFY BELOW THIS LINE
@@ -228,3 +228,4 @@ result <- extract_gene_positions(csv_file, gar_gff_file, output_file)
 cat("\n=== ANALYSIS COMPLETE ===\n")
 cat("Results saved to:", output_file, "\n")
 cat("You can now load this file into IGV!\n")
+

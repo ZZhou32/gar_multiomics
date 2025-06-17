@@ -1,0 +1,170 @@
+#!/bin/bash --login
+
+#SBATCH --job-name=testing_homer
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=64G
+#SBATCH --time=04:00:00
+#SBATCH --mail-user=zhouzeh2@msu.edu
+#SBATCH --output=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_peaks/out/%x-%j.SLURMout
+#SBATCH --error=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_peaks/out/%x-%j.SLURMerr
+
+cd /mnt/research/FishEvoDevoGeno/raw_reads_4_tony
+
+# File paths 
+BAM_FILE="ATAC_bam/Gar_ATAC_whole_embryo_32-33_rep2_sorted_no_mito_resorted_no_dup_uniq_query.bam"
+PEAK_FILE="ATAC_bam/Genrich_Gar_ATAC_whole_embryo_32-33_rep2_sorted_no_mito_resorted_no_dup_uniq_query.bam.narrowPeak"
+SAMPLE_NAME="st_32_33_2"  # Following your naming convention
+
+# Output directory
+OUTPUT_DIR="single_sample_test"
+mkdir -p ${OUTPUT_DIR}
+
+echo "Input files:"
+echo "  BAM: ${BAM_FILE}"
+echo "  Peaks: ${PEAK_FILE}"
+echo "  Sample name: ${SAMPLE_NAME}"
+
+# ====================================================================
+# Step 1: Verify input files exist
+# ====================================================================
+
+echo -e "\n--- Checking input files ---"
+
+if [[ ! -f "${BAM_FILE}" ]]; then
+    echo "ERROR: BAM file not found: ${BAM_FILE}"
+    echo "Please check the file path and try again."
+    exit 1
+fi
+
+if [[ ! -f "${PEAK_FILE}" ]]; then
+    echo "ERROR: Peak file not found: ${PEAK_FILE}"
+    echo "Please check the file path and try again."
+    exit 1
+fi
+
+echo "✓ BAM file found: ${BAM_FILE}"
+echo "✓ Peak file found: ${PEAK_FILE}"
+
+# Check if BAM file is indexed
+if [[ ! -f "${BAM_FILE}.bai" ]]; then
+    echo "Warning: BAM index not found. Creating index..."
+    samtools index ${BAM_FILE}
+    echo "✓ BAM file indexed"
+fi
+
+# ====================================================================
+# Step 2: Examine the peak file format
+# ====================================================================
+
+echo -e "\n--- Examining peak file format ---"
+
+echo "First 5 peaks:"
+head -5 ${PEAK_FILE}
+
+echo -e "\nPeak file statistics:"
+echo "Total peaks: $(wc -l < ${PEAK_FILE})"
+echo "Chromosomes: $(cut -f1 ${PEAK_FILE} | sort | uniq -c)"
+
+# Check if it's standard narrowPeak format (10 columns)
+NCOLS=$(head -1 ${PEAK_FILE} | awk '{print NF}')
+echo "Number of columns: ${NCOLS}"
+
+if [[ ${NCOLS} -eq 10 ]]; then
+    echo "✓ Standard narrowPeak format detected"
+else
+    echo "⚠ Non-standard format detected (expected 10 columns)"
+fi
+
+# ====================================================================
+# Step 3: Convert narrowPeak to BED format for counting
+# ====================================================================
+
+echo -e "\n--- Converting narrowPeak to BED format ---"
+
+# narrowPeak format: chr start end name score strand signalValue pValue qValue peak
+# We need: chr start end for bedtools
+awk 'BEGIN{OFS="\t"} {print $1, $2, $3, "peak_"NR}' ${PEAK_FILE} > ${OUTPUT_DIR}/${SAMPLE_NAME}_peaks.bed
+
+echo "✓ Created BED file: ${OUTPUT_DIR}/${SAMPLE_NAME}_peaks.bed"
+echo "BED file peaks: $(wc -l < ${OUTPUT_DIR}/${SAMPLE_NAME}_peaks.bed)"
+
+# ====================================================================
+# Step 4: Count reads in peaks using bedtools
+# ====================================================================
+
+echo -e "\n--- Counting reads in peaks ---"
+
+# Method 1: Using bedtools coverage
+echo "Method 1: bedtools coverage"
+bedtools coverage -a ${OUTPUT_DIR}/${SAMPLE_NAME}_peaks.bed -b ${BAM_FILE} -counts > ${OUTPUT_DIR}/${SAMPLE_NAME}_coverage.bed
+
+# Extract just the count column (5th column in coverage output)
+cut -f5 ${OUTPUT_DIR}/${SAMPLE_NAME}_coverage.bed > ${OUTPUT_DIR}/${SAMPLE_NAME}_counts.txt
+
+echo "✓ Read counts generated: ${OUTPUT_DIR}/${SAMPLE_NAME}_counts.txt"
+
+# Method 2: Using bedtools intersect (alternative)
+echo "Method 2: bedtools intersect (alternative)"
+bedtools intersect -a ${OUTPUT_DIR}/${SAMPLE_NAME}_peaks.bed -b ${BAM_FILE} -c > ${OUTPUT_DIR}/${SAMPLE_NAME}_intersect.bed
+
+# Extract count column
+cut -f5 ${OUTPUT_DIR}/${SAMPLE_NAME}_intersect.bed > ${OUTPUT_DIR}/${SAMPLE_NAME}_counts_intersect.txt
+
+echo "✓ Alternative counts generated: ${OUTPUT_DIR}/${SAMPLE_NAME}_counts_intersect.txt"
+
+# ====================================================================
+# Step 5: Create peak count matrix format
+# ====================================================================
+
+echo -e "\n--- Creating count matrix format ---"
+
+# Create peak IDs
+awk 'BEGIN{OFS="\t"} {print $1":"$2"-"$3}' ${OUTPUT_DIR}/${SAMPLE_NAME}_peaks.bed > ${OUTPUT_DIR}/peak_ids.txt
+
+# Combine peak IDs with counts
+paste ${OUTPUT_DIR}/peak_ids.txt ${OUTPUT_DIR}/${SAMPLE_NAME}_counts.txt > ${OUTPUT_DIR}/${SAMPLE_NAME}_matrix_temp.txt
+
+# Add header
+echo -e "peak_id\t${SAMPLE_NAME}" > ${OUTPUT_DIR}/${SAMPLE_NAME}_count_matrix.txt
+cat ${OUTPUT_DIR}/${SAMPLE_NAME}_matrix_temp.txt >> ${OUTPUT_DIR}/${SAMPLE_NAME}_count_matrix.txt
+
+echo "✓ Count matrix created: ${OUTPUT_DIR}/${SAMPLE_NAME}_count_matrix.txt"
+
+# ====================================================================
+# Step 6: Generate summary statistics
+# ====================================================================
+
+echo -e "\n--- Summary Statistics ---"
+
+TOTAL_PEAKS=$(wc -l < ${OUTPUT_DIR}/${SAMPLE_NAME}_peaks.bed)
+TOTAL_READS=$(samtools view -c ${BAM_FILE})
+READS_IN_PEAKS=$(awk '{sum += $1} END {print sum}' ${OUTPUT_DIR}/${SAMPLE_NAME}_counts.txt)
+PEAKS_WITH_READS=$(awk '$1 > 0 {count++} END {print count+0}' ${OUTPUT_DIR}/${SAMPLE_NAME}_counts.txt)
+FRACTION_IN_PEAKS=$(echo "scale=4; ${READS_IN_PEAKS} / ${TOTAL_READS}" | bc -l)
+
+echo "Sample: ${SAMPLE_NAME}"
+echo "Total peaks: ${TOTAL_PEAKS}"
+echo "Total reads in BAM: ${TOTAL_READS}"
+echo "Reads in peaks: ${READS_IN_PEAKS}"
+echo "Peaks with reads: ${PEAKS_WITH_READS}"
+echo "Fraction of reads in peaks: ${FRACTION_IN_PEAKS}"
+
+# Save summary
+cat > ${OUTPUT_DIR}/${SAMPLE_NAME}_summary.txt << EOF
+Sample Summary: ${SAMPLE_NAME}
+================================
+Input BAM: ${BAM_FILE}
+Input Peaks: ${PEAK_FILE}
+Total peaks: ${TOTAL_PEAKS}
+Total reads: ${TOTAL_READS}
+Reads in peaks: ${READS_IN_PEAKS}
+Peaks with reads: ${PEAKS_WITH_READS}
+Fraction in peaks: ${FRACTION_IN_PEAKS}
+
+Output files:
+- Peak BED: ${OUTPUT_DIR}/${SAMPLE_NAME}_peaks.bed
+- Read counts: ${OUTPUT_DIR}/${SAMPLE_NAME}_counts.txt
+- Count matrix: ${OUTPUT_DIR}/${SAMPLE_NAME}_count_matrix.txt
+EOF

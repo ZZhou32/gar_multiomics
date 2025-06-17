@@ -1,0 +1,19 @@
+#!/bin/bash --login
+
+#SBATCH --job-name=testing_homer
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=64G
+#SBATCH --time=04:00:00
+#SBATCH --mail-user=zhouzeh2@msu.edu
+#SBATCH --output=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_peaks/out/%x-%j.SLURMout
+#SBATCH --error=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_peaks/out/%x-%j.SLURMerr
+
+module purge
+module load Homer/4.11-GCC-12.3.0
+
+cd /mnt/research/FishEvoDevoGeno/raw_reads_4_tony
+annotatePeaks.pl ATAC_bam/Genrich_Gar_ATAC_whole_embryo_32-33_rep1_sorted_no_mito_resorted_no_dup_uniq_query.bam.narrowPeak GCF_040954835.1_fLepOcu1.hap2_genomic.fna -gtf GCF_040954835.1_fLepOcu1.hap2_genomic.gtf> ATAC_peaks/test_1.txt
+
+echo "Job completed: $(date)"
