@@ -23,12 +23,12 @@ echo “EBROOTPICARD: $EBROOTPICARD”
 # Change to the directory containing BAM files
 cd /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_bam
 # Remove mitochondrial reads
-parallel 'samtools view -h {} | python /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/script/ATAC_mapping/removeChrom.py - - MT | samtools view -b - > {.}_no_mito.bam' ::: *_sorted.bam   
+parallel 'samtools view -h {} | python /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/script/ATAC_mapping/removeChrom.py - - MT | samtools view -b - > {.}_no_mito.bam' ::: *_sorted.bam
 
 
-parallel 'samtools sort -o {.}_resorted.bam {}' ::: *_no_mito.bam
+parallel 'samtools sort -o {.}_resorted.bam {}' ::: *_sorted_no_mito.bam
 # Mark duplicates using Picard
-parallel --jobs 3 'java -Xmx32G -jar $EBROOTPICARD/picard.jar MarkDuplicates -I {} -O {.}_no_dup.bam -M {.}_dups.txt -REMOVE_DUPLICATES true' ::: *_no_mito_resorted.bam
+parallel --jobs 3 'java -Xmx32G -jar $EBROOTPICARD/picard.jar MarkDuplicates -I {} -O {.}_no_dup.bam -M {.}_dups.txt -REMOVE_DUPLICATES true' ::: *_sorted_no_mito_resorted.bam
 # #remove non-uniquely-mapped reads from all ATAC reads
 parallel 'samtools view -b -q 10 {} > {.}_uniq.bam' ::: *_sorted_no_mito_resorted_no_dup.bam
 ## index filtered bam files for ATAC reads
@@ -38,4 +38,4 @@ parallel 'bamCoverage -b {} -of bigwig --normalizeUsing BPM --ignoreForNormaliza
 
 #peak calling
 parallel 'samtools sort -n {} -o {.}_query.bam' ::: *_sorted_no_mito_resorted_no_dup_uniq.bam
-parallel '/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/software/genrich/Genrich/Genrich  -t {} -j -q 0.1  -o Genrich_{}.narrowPeak -k {}_pileup' ::: *_sorted_no_mito_resorted_no_dup_uniq_query.bam
+#parallel '/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/software/genrich/Genrich/Genrich  -t {} -j -q 0.1  -o Genrich_{}.narrowPeak -k {}_pileup' ::: *_sorted_no_mito_resorted_no_dup_uniq_query.bam

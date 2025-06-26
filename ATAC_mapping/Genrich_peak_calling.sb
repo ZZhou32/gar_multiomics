@@ -1,0 +1,98 @@
+#!/bin/bash --login
+#SBATCH --nodes=8
+#SBATCH --ntasks-per-node=6
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=96GB
+#SBATCH --time=03:00:00
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=zhouzeh2@msu.edu
+#SBATCH --output=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_bam/out/%x-%j.SLURMout
+echo “This script is to test Genrich.”
+# Purge current modules and load required ones
+module purge
+module load SAMtools/1.18-GCC-12.3.0
+module load picard/2.25.1-Java-11
+module load parallel/20230722-GCCcore-12.3.0
+
+cd /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_bam
+
+
+/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/software/genrich/Genrich/Genrich \
+-j -q 0.05 -a 0 \
+-t Gar_ATAC_head_heart_30-31_sorted_no_mito_resorted_no_dup_uniq_query.bam \
+-o Genrich_Gar_ATAC_head_heart_30-31.narrowPeak \
+-k Genrich_Gar_ATAC_head_heart_30-31_pileups.txt \
+-f Genrich_Gar_ATAC_head_heart_30-31_stats_values.txt
+
+/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/software/genrich/Genrich/Genrich \
+-j -q 0.05 -a 0 \
+-t "Gar_ATAC_whole_embryo_21-22_rep1_sorted_no_mito_resorted_no_dup_uniq_query.bam Gar_ATAC_whole_embryo_21-22_rep2_sorted_no_mito_resorted_no_dup_uniq_query.bam" \
+-o Genrich_Gar_ATAC_whole_embryo_21-22.narrowPeak \
+-k Genrich_Gar_ATAC_whole_embryo_21-22_pileups.txt \
+-f Genrich_Gar_ATAC_whole_embryo_21-22_stats_values.txt
+
+/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/software/genrich/Genrich/Genrich \
+-j -q 0.05 -a 0 \
+-t Gar_ATAC_whole_embryo_22-23_sorted_no_mito_resorted_no_dup_uniq_query.bam \
+-o Genrich_Gar_ATAC_whole_embryo_22-23.narrowPeak \
+-k Genrich_Gar_ATAC_whole_embryo_22-23_pileups.txt \
+-f Genrich_Gar_ATAC_whole_embryo_22-23_stats_values.txt
+
+/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/software/genrich/Genrich/Genrich \
+-j -q 0.05 -a 0 \
+-t "Gar_ATAC_whole_embryo_24-25_rep1_sorted_no_mito_resorted_no_dup_uniq_query.bam Gar_ATAC_whole_embryo_24-25_rep2_sorted_no_mito_resorted_no_dup_uniq_query.bam Gar_ATAC_whole_embryo_24-25_rep3_sorted_no_mito_resorted_no_dup_uniq_query.bam" \
+-o Genrich_Gar_ATAC_whole_embryo_24-25.narrowPeak \
+-k Genrich_Gar_ATAC_whole_embryo_24-25_pileups.txt \
+-f Genrich_Gar_ATAC_whole_embryo_24-25_stats_values.txt
+
+
+/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/software/genrich/Genrich/Genrich \
+-j -q 0.05 -a 200 \
+-t "Gar_ATAC_whole_embryo_25-26_rep1_sorted_no_mito_resorted_no_dup_uniq_query.bam Gar_ATAC_whole_embryo_25-26_rep2_sorted_no_mito_resorted_no_dup_uniq_query.bam Gar_ATAC_whole_embryo_25-26_rep3_sorted_no_mito_resorted_no_dup_uniq_query.bam" \
+-o Genrich_Gar_ATAC_whole_embryo_25-26.narrowPeak \
+-k Genrich_Gar_ATAC_whole_embryo_25-26_pileups.txt \
+-f Genrich_Gar_ATAC_whole_embryo_25-26_stats_values.txt
+
+/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/software/genrich/Genrich/Genrich \
+-j -q 0.05 -a 200 \
+-t "Gar_ATAC_whole_embryo_27-28_rep1_sorted_no_mito_resorted_no_dup_uniq_query.bam Gar_ATAC_whole_embryo_27-28_rep2_sorted_no_mito_resorted_no_dup_uniq_query.bam Gar_ATAC_whole_embryo_27-28_rep3_sorted_no_mito_resorted_no_dup_uniq_query.bam" \
+-o Genrich_Gar_ATAC_whole_embryo_27-28.narrowPeak \
+-k Genrich_Gar_ATAC_whole_embryo_27-28_pileups.txt \
+-f Genrich_Gar_ATAC_whole_embryo_27-28_stats_values.txt
+
+/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/software/genrich/Genrich/Genrich \
+-j -q 0.05 -a 0 \
+-t Gar_ATAC_whole_embryo_28-29_sorted_no_mito_resorted_no_dup_uniq_query.bam \
+-o Genrich_Gar_ATAC_whole_embryo_28-29.narrowPeak \
+-k Genrich_Gar_ATAC_whole_embryo_28-29_pileups.txt \
+-f Genrich_Gar_ATAC_whole_embryo_28-29_stats_values.txt
+
+/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/software/genrich/Genrich/Genrich \
+-j -q 0.1 -a 200 \
+-t "Gar_ATAC_whole_embryo_30-31_rep1_sorted_no_mito_resorted_no_dup_uniq_query.bam Gar_ATAC_whole_embryo_30-31_rep2_sorted_no_mito_resorted_no_dup_uniq_query.bam Gar_ATAC_whole_embryo_30-31_rep3_sorted_no_mito_resorted_no_dup_uniq_query.bam" \
+-o Genrich_Gar_ATAC_whole_embryo_30-31.narrowPeak \
+-k Genrich_Gar_ATAC_whole_embryo_30-31_pileups.txt \
+-f Genrich_Gar_ATAC_whole_embryo_30-31_stats_values.txt
+
+/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/software/genrich/Genrich/Genrich \
+-j -q 0.05 -a 0 \
+-t Gar_ATAC_whole_embryo_31-32_sorted_no_mito_resorted_no_dup_uniq_query.bam \
+-o Genrich_Gar_ATAC_whole_embryo_31-32.narrowPeak \
+-k Genrich_Gar_ATAC_whole_embryo_31-32_pileups.txt \
+-f Genrich_Gar_ATAC_whole_embryo_31-32_stats_values.txt
+
+/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/software/genrich/Genrich/Genrich \
+-j -q 0.05 -a 0 \
+-t "Gar_ATAC_whole_embryo_32-33_rep1_sorted_no_mito_resorted_no_dup_uniq_query.bam Gar_ATAC_whole_embryo_32-33_rep2_sorted_no_mito_resorted_no_dup_uniq_query.bam Gar_ATAC_whole_embryo_32-33_rep3_sorted_no_mito_resorted_no_dup_uniq_query.bam" \
+-o Genrich_Gar_ATAC_whole_embryo_32-33.narrowPeak \
+-k Genrich_Gar_ATAC_whole_embryo_32-33_pileups.txt \
+-f Genrich_Gar_ATAC_whole_embryo_32-33_stats_values.txt
+
+/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/software/genrich/Genrich/Genrich \
+-j -q 0.05 -a 0 \
+-t Gar_ATAC_whole_embryo_33-34_sorted_no_mito_resorted_no_dup_uniq_query.bam \
+-o Genrich_Gar_ATAC_whole_embryo_33-34.narrowPeak \
+-k Genrich_Gar_ATAC_whole_embryo_33-34_pileups.txt \
+-f Genrich_Gar_ATAC_whole_embryo_33-34_stats_values.txt
+
+

@@ -42,7 +42,7 @@ module load SAMtools/1.18-GCC-12.3.0
 # Run our job
 cd /mnt/research/FishEvoDevoGeno/raw_reads_4_tony
 #index genome
-bowtie2-build GCF_040954835.1_fLepOcu1.hap2_genomic.fna /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/index_genome/fLepOcu1hap2
+#bowtie2-build GCF_040954835.1_fLepOcu1.hap2_genomic.fna /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/index_genome/fLepOcu1hap2
 
 #index masked genome
 #map all ATAC reads and convert and sort bam
@@ -60,4 +60,3 @@ samtools quickcheck -v *.bam > bad_bams.fofn   && echo 'all ok' || echo 'some fi
 
 
 
-``

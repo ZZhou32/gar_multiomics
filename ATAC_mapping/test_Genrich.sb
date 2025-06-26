@@ -16,4 +16,9 @@ module load parallel/20230722-GCCcore-12.3.0
 
 cd /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_bam
 
-/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/software/genrich/Genrich/Genrich  -t Gar_ATAC_head_heart_30-31_sorted_no_mito_resorted_no_dup_uniq_query.bam -j -q 0.05  -o Genrich_q0.05.narrowPeak -k test_pileup 
+/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/software/genrich/Genrich/Genrich \
+-j -q 0.05 -a 0  -v  -r  \
+-t Gar_ATAC_whole_embryo_33-34_sorted_no_mito_resorted_no_dup_uniq_query.bam \
+-o AGenrich_Gar_ATAC_whole_embryo_33-34.narrowPeak \
+-k AGenrich_Gar_ATAC_whole_embryo_33-34_pileups.txt \
+-f AGenrich_Gar_ATAC_whole_embryo_33-34_stats_values.txt

@@ -1,0 +1,18 @@
+Processing prefix: Gar_ATAC_whole_embryo_32-33_rep3
+For improved speed, add 'usejni=t' to the command line of BBMap tools which support the use of the compiled jni C code.
+java -ea -Xmx13895m -Xms13895m -cp /opt/software-current/2023.06/x86_64/generic/software/BBMap/39.01-GCC-12.3.0/current/ jgi.BBDuk in1=/mnt/ufs18/rs-032/FishEvoDevoGeno/raw_reads_4_tony/ATAC/Gar_ATAC_whole_embryo_32-33_rep3_R1.fastq.gz in2=/mnt/ufs18/rs-032/FishEvoDevoGeno/raw_reads_4_tony/ATAC/Gar_ATAC_whole_embryo_32-33_rep3_R2.fastq.gz out1=/mnt/ufs18/rs-032/FishEvoDevoGeno/raw_reads_4_tony/ATAC_trim/Gar_ATAC_whole_embryo_32-33_rep3_R1NOADAPTER.fq out2=/mnt/ufs18/rs-032/FishEvoDevoGeno/raw_reads_4_tony/ATAC_trim/Gar_ATAC_whole_embryo_32-33_rep3_R2NOADAPTER.fq ref=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/adapter_contamination_sequences.fa ktrim=rl k=23 mink=11 hdist=0 tpe tbo
+Executing jgi.BBDuk [in1=/mnt/ufs18/rs-032/FishEvoDevoGeno/raw_reads_4_tony/ATAC/Gar_ATAC_whole_embryo_32-33_rep3_R1.fastq.gz, in2=/mnt/ufs18/rs-032/FishEvoDevoGeno/raw_reads_4_tony/ATAC/Gar_ATAC_whole_embryo_32-33_rep3_R2.fastq.gz, out1=/mnt/ufs18/rs-032/FishEvoDevoGeno/raw_reads_4_tony/ATAC_trim/Gar_ATAC_whole_embryo_32-33_rep3_R1NOADAPTER.fq, out2=/mnt/ufs18/rs-032/FishEvoDevoGeno/raw_reads_4_tony/ATAC_trim/Gar_ATAC_whole_embryo_32-33_rep3_R2NOADAPTER.fq, ref=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/adapter_contamination_sequences.fa, ktrim=rl, k=23, mink=11, hdist=0, tpe, tbo]
+Version 39.01
+
+maskMiddle was disabled because useShortKmers=true
+0.130 seconds.
+Initial:
+Memory: max=14085m, total=14085m, free=13695m, used=390m
+
+Added 787 kmers; time: 	0.159 seconds.
+Memory: max=14085m, total=14085m, free=12996m, used=1089m
+
+Input is being processed as paired
+Started output streams:	0.168 seconds.
+/opt/software-current/2023.06/x86_64/generic/software/BBMap/39.01-GCC-12.3.0/bbduk.sh: line 370: 428622 Killed                  java -ea -Xmx13895m -Xms13895m -cp /opt/software-current/2023.06/x86_64/generic/software/BBMap/39.01-GCC-12.3.0/current/ jgi.BBDuk in1=/mnt/ufs18/rs-032/FishEvoDevoGeno/raw_reads_4_tony/ATAC/Gar_ATAC_whole_embryo_32-33_rep3_R1.fastq.gz in2=/mnt/ufs18/rs-032/FishEvoDevoGeno/raw_reads_4_tony/ATAC/Gar_ATAC_whole_embryo_32-33_rep3_R2.fastq.gz out1=/mnt/ufs18/rs-032/FishEvoDevoGeno/raw_reads_4_tony/ATAC_trim/Gar_ATAC_whole_embryo_32-33_rep3_R1NOADAPTER.fq out2=/mnt/ufs18/rs-032/FishEvoDevoGeno/raw_reads_4_tony/ATAC_trim/Gar_ATAC_whole_embryo_32-33_rep3_R2NOADAPTER.fq ref=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/adapter_contamination_sequences.fa ktrim=rl k=23 mink=11 hdist=0 tpe tbo
+slurmstepd: error: Detected 1 oom_kill event in StepId=57761618.batch. Some of the step tasks have been OOM Killed.

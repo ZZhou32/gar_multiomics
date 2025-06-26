@@ -1,0 +1,22 @@
+#!/bin/bash --login
+#SBATCH --nodes=8
+#SBATCH --ntasks-per-node=6
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=96GB
+#SBATCH --time=03:00:00
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=zhouzeh2@msu.edu
+#SBATCH --output=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_bam/out/%x-%j.SLURMout
+echo “This script is to test Genrich.”
+# Purge current modules and load required ones
+
+module purge
+module load MACS2/2.2.9.1-foss-2022b
+module load parallel/20230722-GCCcore-12.2.0
+module load SAMtools/1.17-GCC-12.2.0
+
+cd /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_bam
+
+parallel 'samtools view {} | awk '\''$9>0'\'' | cut -f 9 | sort | uniq -c | sort -b -k2,2n | sed -e '\''s/^[ \t]*//'\'' > fragments/{}_length_count.txt' ::: *_sorted_no_mito_resorted_no_dup_uniq_query.bam
+
+parallel 'macs2 callpeak -t {} -f BAMPE -g 1200570847 -n {} -B -q 0.05 -s 75 --call-summits --outdir MACS2/macs2_{}' ::: *_sorted_no_mito_resorted_no_dup_uniq_query.bam

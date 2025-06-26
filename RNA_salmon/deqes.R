@@ -8,7 +8,7 @@ BiocManager::install("DEGreport")
 BiocManager::install("rtracklayer")
 BiocManager::install("Glimma")
 ainstall.packages("pheatmap")
-
+install.packages("DEVis")
 
 ## Initiate libraries.
 library("pasilla")
@@ -23,7 +23,9 @@ library("rtracklayer")
 library("tximport")
 library("Glimma")
 library("edgeR")
-
+############################################################
+### Preping 
+############################################################
 
 # Create the sample_id vector
 sample_ids <- c("st_21_22_1_", "st_21_22_2_", "st_21_22_3_",
@@ -49,31 +51,22 @@ files <- file.path(base_dir, paste0(samples$sample_id, "_quant"), "quant.sf")
 names(files) <- samples$sample_id
 # Convert stages to factor for DESeq2
 samples$stages <- factor(samples$stages)
-
-
-
 # Set row names (important for DESeq2)
 rownames(samples) <- samples$sample_id
 # Display the sample information
 print(samples[,c("sample_id", "stages")])
-
 gtf <- import("/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/GCF_040954835.1_fLepOcu1.hap2_genomic.gtf")
-
 tx2gene <- read_csv("/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/tx2gene.csv") 
 clean_salmon_ids <- function(file_path) {
   # Read the salmon quant.sf file
   quant_data <- read.table(file_path, header = TRUE, sep = "\t")
-  
-  # Extract clean XR IDs
-  quant_data$Name <- str_extract(quant_data$Name, "XR_\\d+\\.\\d+")
-  
+  # Extract clean XR or XM IDs (XR_\\d+\\.\\d+ or XM_\\d+\\.\\d+)
+  quant_data$Name <- str_extract(quant_data$Name, "(XR|XM)_\\d+\\.\\d+")
   # Remove rows where extraction failed
   quant_data <- quant_data[!is.na(quant_data$Name), ]
-  
   # Write back to file (or create new file)
   write.table(quant_data, file = paste0(file_path, "_cleaned"), 
               sep = "\t", quote = FALSE, row.names = FALSE)
-  
   return(paste0(file_path, "_cleaned"))
 }
 files_cleaned <- sapply(files, clean_salmon_ids)
@@ -83,34 +76,109 @@ txi <- tximport(files_cleaned,
 ddsTxi <- DESeqDataSetFromTximport(txi,
                                    colData = samples,
                                    design = ~ stages) 
-
-
+################################################
 ## Differential expression analysis
+################################################
 dds <- DESeq(ddsTxi)
-colnames(dds)
-res <- results(dds)
-resultsNames(dds)
+dds$stages<-as.factor(dds$stages)
+## pre-filteriing 
 
-dds_1 <- DESeq(ddsTxi, quiet=TRUE)
+smallestGroupSize <- 3
+keep <- rowSums(counts(dds) >= 10) >= smallestGroupSize
+dds <- dds[keep,]
+gene_counts<-counts(dds,normalize=TRUE)
+sample_groups <- sub("_[0-9]+_?$", "", colnames(gene_counts))
+# Calculate means for each group of replicates
+averaged_data <- sapply(unique(sample_groups), function(group) {
+  # Find all columns belonging to this group
+  # Match either format: group_# or group_#_
+  cols <- grep(paste0("^", group, "_[0-9]+_?$"), colnames(gene_counts))
+  
+  if(length(cols) > 1) {
+    # Calculate row means if there are replicates
+    rowMeans(gene_counts[, cols, drop = FALSE], na.rm = TRUE)
+  } else {
+    # Just return the single column if no replicates
+    gene_counts[, cols]
+  }
+})
+# Convert to data frame and add row names
+averaged_data <- as.data.frame(averaged_data)
+rownames(averaged_data) <- rownames(gene_counts)
+
+my_table <- data.frame(column_name = c("tbx18","tbx15","tbx20", "fgf10a","hand2","grem1a","shha",
+                                       "hoxa10b","hoxa11b","hoxa13b","hoxc10a","hoxc11a","hoxc12a","hoxc13a",
+                                       "hoxd10a","hoxd11a","hoxd12a","hoxd13a"))
+
+
+
+"grem1b" %in%rownames(gene_counts)
+
+
+head(results(dds, tidy=TRUE))
 glimmaMDS(dds)
 glimmaMA(dds_1,groups=dds_1$stages)
-glimmaVolcano(dds_1,groups=dds_1$stages)
+glimmaVolcano(dds_lrt,groups=dds$stages)
 ncol(counts(dds_1))
 
 
+
+######################################################################
+## ANAlYSIS of TPMs
+######################################################################
+library(stringr)
+combine_salmon_tpm <- function(file_paths, output_csv = "combined_tpm.csv") {
+  # Initialize combined data frame
+  combined <- NULL
+  
+  for (file_path in file_paths) {
+    # Read data (handling potential header inconsistencies)
+    quant_data <- read.table(file_path, header = TRUE, sep = "\t", check.names = FALSE)
+    
+    # Create sample name from filename
+    sample_name <- tools::file_path_sans_ext(basename(file_path))
+    
+    # Select only Name and TPM columns
+    current_tpm <- quant_data[, c("Name", "TPM")]
+    colnames(current_tpm) <- c("Name", sample_name)
+    
+    # Merge with existing data
+    if (is.null(combined)) {
+      combined <- current_tpm
+    } else {
+      combined <- merge(combined, current_tpm, by = "Name", all = TRUE)
+    }
+  }
+  
+  # Replace NA with 0 (recommended for expression matrices)
+  combined[is.na(combined)] <- 0
+  
+  # Write output
+  write.csv(combined, file = output_csv, row.names = FALSE, quote = FALSE)
+  
+  return(combined)
+}
+file_paths<-c("st_21_22_1__quant/quant.sf_cleaned", "st_21_22_2__quant/quant.sf_cleaned", "st_21_22_3__quant/quant.sf_cleaned",
+                "st_22_23_1__quant/quant.sf_cleaned", "st_22_23_2__quant/quant.sf_cleaned", "st_22_23_3__quant/quant.sf_cleaned",
+                "st_24_25_1__quant/quant.sf_cleaned", "st_24_25_2__quant/quant.sf_cleaned", "st_24_25_3__quant/quant.sf_cleaned",
+                "st_25_25_1__quant/quant.sf_cleaned", "st_25_25_2__quant/quant.sf_cleaned", "st_25_25_3__quant/quant.sf_cleaned",
+                "st_27_28_1__quant/quant.sf_cleaned", "st_27_28_2__quant/quant.sf_cleaned", "st_27_28_3__quant/quant.sf_cleaned",
+                "st_29_29_1__quant/quant.sf_cleaned", "st_29_29_2__quant/quant.sf_cleaned", "st_29_29_3__quant/quant.sf_cleaned",
+                "st_30_31_1__quant/quant.sf_cleaned", "st_30_31_2__quant/quant.sf_cleaned", "st_30_31_3__quant/quant.sf_cleaned",
+                "st_31_32_1__quant/quant.sf_cleaned", "st_31_32_2__quant/quant.sf_cleaned", "st_31_32_3__quant/quant.sf_cleaned",
+                "st_32_33_1__quant/quant.sf_cleaned", "st_32_33_2__quant/quant.sf_cleaned", "st_32_33_3__quant/quant.sf_cleaned",
+                "st_33_34_1__quant/quant.sf_cleaned", "st_33_34_2__quant/quant.sf_cleaned", "st_33_34_3__quant/quant.sf_cleaned")
+setwd("/mnt/ufs18/rs-032/FishEvoDevoGeno/raw_reads_4_tony/salmon_quant")
+combined_TPMs <- combine_salmon_tpm(file_paths, "all_samples_tpm.csv")
+test<-read_tsv("st_21_22_1__quant/quant.sf_cleaned")
 ######################################################################
 ## Log fold change shrinkage for visualization and ranking
 ######################################################################
-resultsNames(dds)
-
-resLFC <- lfcShrink(dds, coef="stages_33_34_vs_21_22", type="apeglm")
-resLFC
-
-plotMA(resLFC, ylim=c(-2,2))
 
 
 res_specific <- results(dds, contrast=c("stages", "29_29", "30_31"))
-glimmaVolcano(dds_1, dge=res_specific, groups=dds_1$stages)
+?results
+glimmaVolcano(dds, dge=res_specific, groups=dds$stages)
 
 ## ggplot2 (looking cute)
 library(ggplot2)
