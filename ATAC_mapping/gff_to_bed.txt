@@ -1,0 +1,5 @@
+awk '$3 == "CDS" || $3 == "exon"' GCF_040954835.1_fLepOcu1.hap2_genomic.gff  > cds_exons.gff
+awk '$3 == "exon"' GCF_040954835.1_fLepOcu1.hap2_genomic.gff  > exons_only.gff
+
+gff2bed < cds_exons.gff > cds_exons.bed
+gff2bed < exons_only.gff > exons_only.bed

@@ -38,30 +38,13 @@ def generate_batch_files_and_master(folder_path, batch_folder,trim_folder):
             # Customize the content of the batch file
             batch_content = f"""#!/bin/bash --login
             
-echo "Processing prefix: {base}"
-# Number of nodes
-#SBATCH --nodes=8
 
-# Number of tasks to run on each node
+#SBATCH --nodes=4
 #SBATCH --ntasks-per-node=6
-
-# Number of CPUs per task
 #SBATCH --cpus-per-task=4
-
-# Memory per Node
-# Specify "M" or "G" for MB and GB respectively
-#SBATCH --mem=8G
-
-# Wall time
-# Format: "minutes", "hours:minutes:seconds", 
-# "days-hours", or "days-hours:minutes"
-#SBATCH --time=03:00:00
-
-# Mail address
+#SBATCH --mem=20GB
+#SBATCH --time=12:00:00
 #SBATCH --mail-user=zhouzeh2@msu.edu
-
-# Standard output and error to file
-# %x: job name, %j: job ID
 #SBATCH --output=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_trim/out/%x-%j.SLURMout
 
 # Set the input directory dynamically based on the base name
@@ -71,19 +54,14 @@ in1="${{INPUT_DIR}}/{base}_R1.fastq.gz"
 in2="${{INPUT_DIR}}/{base}_R2.fastq.gz"
 out1="${{OUTPUT_DIR}}/{base}_R1NOADAPTER.fq"
 out2="${{OUTPUT_DIR}}/{base}_R2NOADAPTER.fq"
+out1_1="${{OUTPUT_DIR}}/{base}_R1_notaligned.fq"
+out2_1="${{OUTPUT_DIR}}/{base}_R2_notaligned.fq"
 
-module purge ## to remove current modules
-#module load iccifort/2020.1.217
-module load  BBMap/39.01-GCC-12.3.0  
+module purge 
+module load Trimmomatic/0.39-Java-17
 
 # Run bbduk.sh (ensure the command is correct for your use case)
-bash bbduk.sh \\
-    in1="$in1" \\
-    in2="$in2" \\
-    out1="$out1" \\
-    out2="$out2" \\
-    ref="/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/adapter_contamination_sequences.fa" \\
-    ktrim=rl k=23 mink=11 hdist=0 tpe tbo
+bbduk.sh in={}_1.fq.gz in2={}_2.fq.gz out={}_pe_bbtrimmed_1.fq out2={}_pe_bbtrimmmed_2.fq outs={}_se_bbtrimmed.fq ref=adapter_contamination_sequences.fasta ktrim=r minlength=25
 """
             # Write the batch file
             with open(batch_file_name, "w") as batch_file:
@@ -96,9 +74,9 @@ bash bbduk.sh \\
 
 
 # Example usage
-folder_path = "/mnt/ufs18/rs-032/FishEvoDevoGeno/raw_reads_4_tony/ATAC" 
-batch_output_folder = "/mnt/ufs18/rs-032/FishEvoDevoGeno/raw_reads_4_tony/script/ATAC/trim" 
-trim_output_folder = "/mnt/ufs18/rs-032/FishEvoDevoGeno/raw_reads_4_tony/ATAC_trim"
+folder_path = "/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC" 
+batch_output_folder = "/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/script/ATAC/trim" 
+trim_output_folder = "/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_trim"
 
 generate_batch_files_and_master(folder_path, batch_output_folder,trim_output_folder)
 

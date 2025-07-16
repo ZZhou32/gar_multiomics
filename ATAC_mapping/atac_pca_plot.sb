@@ -1,0 +1,45 @@
+#!/bin/bash --login
+#SBATCH --nodes=8
+#SBATCH --ntasks-per-node=6
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=96GB
+#SBATCH --time=03:00:00
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=zhouzeh2@msu.edu
+#SBATCH --output=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_peaks/out/%x-%j.SLURMout
+
+module purge
+
+module load R/4.4.1-gfbf-2023b
+
+cd /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_peaks/narrowPeaks_raw
+# 5. Run R script for PCA
+Rscript --vanilla <<EOF
+# Load libraries
+library(ggplot2)
+library(RColorBrewer)
+
+# Read data
+x <- as.matrix(read.table('jaccard.matrix'))
+labels <- read.table('labels.txt')[, 1]
+
+# Replace NA with 0 (if needed)
+x[is.na(x)] <- 0
+
+# PCA
+pca <- prcomp(x, scale. = TRUE)  # prcomp is preferred over princomp
+
+# Plot
+pdf("PCA_plot.pdf", width=8, height=6)
+ggplot(data.frame(PC1=pca\$x[,1], PC2=pca\$x[,2], Group=labels), aes(PC1, PC2, color=Group)) +
+  geom_point(size=3) +
+  scale_color_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(length(unique(labels)))) +
+  labs(title="PCA of ATAC-seq Peak Similarity (Jaccard Index)") +
+  theme_minimal()
+dev.off()
+
+# Save PCA results
+write.table(pca\$x, file="PCA_scores.txt", quote=FALSE, sep="\t")
+EOF
+
+echo "Analysis complete."

@@ -67,7 +67,8 @@ for filename in sorted(os.listdir(input_folder)):
             else:
                 counts, lengths = data[:, 0], data[:, 1]
             
-            sample_name = os.path.splitext(filename)[0]
+            #sample_name = os.path.splitext(filename)[0]
+            sample_name = filename.split("_sorted_no_mito")[0]
             
             # Calculate density with protection against zero division
             total_counts = np.sum(counts)

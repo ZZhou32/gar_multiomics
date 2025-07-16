@@ -1,40 +1,22 @@
 #!/bin/bash --login
             
-echo "Processing prefix: Gar_ATAC_whole_embryo_27-28_rep2"
-# Number of nodes
+
 #SBATCH --nodes=8
-
-# Number of tasks to run on each node
 #SBATCH --ntasks-per-node=6
-
-# Number of CPUs per task
 #SBATCH --cpus-per-task=4
-
-# Memory per Node
-# Specify "M" or "G" for MB and GB respectively
-#SBATCH --mem=8G
-
-# Wall time
-# Format: "minutes", "hours:minutes:seconds", 
-# "days-hours", or "days-hours:minutes"
-#SBATCH --time=03:00:00
-
-# Mail address
-#SBATCH --mail-user=zhouzeh2@msu.edu
-
-# Standard output and error to file
-# %x: job name, %j: job ID
+#SBATCH --mem=24GB
+#SBATCH --time=04:00:00
 #SBATCH --output=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_qc/out/%x-%j.SLURMout
 
 # Set the input directory dynamically based on the base name
-INPUT_DIR="/mnt/ufs18/rs-032/FishEvoDevoGeno/raw_reads_4_tony/ATAC_trim"
-OUTPUT_DIR="/mnt/ufs18/rs-032/FishEvoDevoGeno/raw_reads_4_tony/ATAC_qc"
-in1="${INPUT_DIR}/Gar_ATAC_whole_embryo_27-28_rep2_R1NOADAPTER.fq"
-in2="${INPUT_DIR}/Gar_ATAC_whole_embryo_27-28_rep2_R2NOADAPTER.fq"
+INPUT_DIR="/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC"
+OUTPUT_DIR="/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_qc"
+in1="${INPUT_DIR}/Gar_ATAC_whole_embryo_27-28_rep2_R1.fastq.gz"
+in2="${INPUT_DIR}/Gar_ATAC_whole_embryo_27-28_rep2_R2.fastq.gz"
 out1="${OUTPUT_DIR}/Gar_ATAC_whole_embryo_27-28_rep2_R1clean.fq"
 out2="${OUTPUT_DIR}/Gar_ATAC_whole_embryo_27-28_rep2_R2clean.fq"
-
-module purge ## to remove current modules
+outs="${OUTPUT_DIR}/Gar_ATAC_whole_embryo_27-28_rep2_se_bbtrimmed.fq"
+module purge 
 #module load iccifort/2020.1.217
 module load  BBMap/39.01-GCC-12.3.0  
 
@@ -44,4 +26,4 @@ bash bbduk.sh \
     in2="$in2" \
     out1="$out1" \
     out2="$out2" \
-    maq=10
+    outs="outs" ref=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/adapter_contamination_sequences.fa ktrim=r minlength=25

@@ -1,0 +1,32 @@
+#!/bin/bash --login
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=128GB
+#SBATCH --time=40:00:00
+#SBATCH --array=1-22%3
+
+module purge
+module load Bowtie2/2.5.1-GCC-12.3.0
+module load SAMtools/1.18-GCC-12.3.0
+
+# Define directories
+dir="/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_qc"
+output_dir="/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_bam"
+index_dir="/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/index_genome/fLepOcu1hap2"
+
+# Create output directory if it doesn't exist
+mkdir -p "$output_dir"
+
+# Get all samples into an array
+samples=($(ls "$dir"/*_R1clean.fq))
+sample=${samples[$SLURM_ARRAY_TASK_ID-1]}
+
+# Process just ONE sample
+base=$(basename "$sample" "_R1clean.fq")
+bowtie2 --very-sensitive -p $SLURM_CPUS_PER_TASK \
+   -x "$index_dir" \
+   -1 "$dir/${base}_R1clean.fq" \
+   -2 "$dir/${base}_R2clean.fq" | \
+   samtools view -u | \
+   samtools sort -@ $SLURM_CPUS_PER_TASK -o "$output_dir/${base}_sorted.bam"

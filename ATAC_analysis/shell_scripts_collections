@@ -1,0 +1,28 @@
+ls /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_peaks/ncOCR_narrow_peaks/*.bed > /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_peaks/ncOCR_peaks.lst
+
+
+ls /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_bam/*_uniq_query.bam > /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_peaks/bams.lst
+
+
+awk 'BEGIN{OFS="\t"} $3=="gene" {
+  tss = ($7 == "+") ? $4 : $5;  # TSS is start/end depending on strand
+  chr = $1;
+  start = (tss - 2000 > 0) ? tss - 2000 : 0;  # Avoid negative coordinates
+  end = tss + 2000;
+  print chr, start, end
+}' /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/GCF_040954835.1_fLepOcu1.hap2_genomic.gtf | \
+sort -k1,1V -k2,2n | \
+gzip > /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/gar.promoter.bed.gz
+
+## making script editable
+chmod +x /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/script/ATAC_analysis/counts.sh
+
+conda install -c bioconda  alfred
+
+for BAM in /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_bam/*_uniq_query.bam; do
+  samtools sort -@ 4 -o ${BAM%.bam}.sorted.bam $BAM
+  samtools index ${BAM%.bam}.sorted.bam
+done
+
+script/ATAC_analysis/counts.sh gar /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_peaks/ncOCR_peaks.lst \
+/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_peaks/bams.lst /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_peaks/gar_results

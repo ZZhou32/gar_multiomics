@@ -1,17 +1,19 @@
 ## Installation
 #BiocManager::install("tximport")
-library("tximport")
+
 BiocManager::install("pasilla")
 BiocManager::install("DESeq2")
 BiocManager::install("apeglm")
 BiocManager::install("DEGreport")
 BiocManager::install("rtracklayer")
 BiocManager::install("Glimma")
+BiocManager::install("Mfuzz")
+
 ainstall.packages("pheatmap")
 install.packages("DEVis")
 
 ## Initiate libraries.
-library("pasilla")
+library("tximport")
 library("tidyverse")
 library("DESeq2")
 library("pheatmap")
@@ -23,6 +25,9 @@ library("rtracklayer")
 library("tximport")
 library("Glimma")
 library("edgeR")
+library(dplyr)
+library(tidyr)
+
 ############################################################
 ### Preping 
 ############################################################
@@ -73,6 +78,9 @@ files_cleaned <- sapply(files, clean_salmon_ids)
 txi <- tximport(files_cleaned, 
                 type = "salmon", 
                 tx2gene = tx2gene)
+txi.tpm <- tximport(files_cleaned, type = "salmon", tx2gene = tx2gene, 
+                   countsFromAbundance = "lengthScaledTPM")
+gene_counts <- txi.tpm$counts
 ddsTxi <- DESeqDataSetFromTximport(txi,
                                    colData = samples,
                                    design = ~ stages) 
@@ -87,9 +95,19 @@ smallestGroupSize <- 3
 keep <- rowSums(counts(dds) >= 10) >= smallestGroupSize
 dds <- dds[keep,]
 gene_counts<-counts(dds,normalize=TRUE)
+gene_counts<-as.data.frame(gene_counts)
+
 sample_groups <- sub("_[0-9]+_?$", "", colnames(gene_counts))
 # Calculate means for each group of replicates
-averaged_data <- sapply(unique(sample_groups), function(group) {
+## Genes of interest
+my_table <- data.frame(gene = c("tbx18","tbx15","tbx20", "fgf10a","hand2","grem1a","shha",
+                                "hoxa10b","hoxa11b","hoxa13b","hoxc10a","hoxc11a","hoxc12a","hoxc13a",
+                                "hoxd10a","hoxd11a","hoxd12a","hoxd13a"))
+
+
+
+
+averaged_data <- sapply(unique(sample_groups), function. (group) {
   # Find all columns belonging to this group
   # Match either format: group_# or group_#_
   cols <- grep(paste0("^", group, "_[0-9]+_?$"), colnames(gene_counts))
@@ -103,26 +121,81 @@ averaged_data <- sapply(unique(sample_groups), function(group) {
   }
 })
 # Convert to data frame and add row names
+##########################################
+##   Visualizing fold changes of key developmenta; genes
+##########################################
 averaged_data <- as.data.frame(averaged_data)
 rownames(averaged_data) <- rownames(gene_counts)
-
-my_table <- data.frame(column_name = c("tbx18","tbx15","tbx20", "fgf10a","hand2","grem1a","shha",
+averaged_data$gene<-rownames(averaged_data)
+my_table <- data.frame(gene = c("tbx18","tbx15","tbx20", "fgf10a","hand2","grem1a","shha",
                                        "hoxa10b","hoxa11b","hoxa13b","hoxc10a","hoxc11a","hoxc12a","hoxc13a",
                                        "hoxd10a","hoxd11a","hoxd12a","hoxd13a"))
 
+fold_change_df<-my_table%>%left_join(.,averaged_data,by="gene") %>% 
+  mutate(across(-gene, ~ ./st_21_22)) %>%  # Divide all columns except 'gene' by st_21_22
+  rename_with(~ paste0(., "_fold_change"), -gene)
+# 2. Explicitly convert to tibble using dplyr's as_tibble()
+fold_change_tbl <- dplyr::as_tibble(fold_change_df)
+
+# 3. Verify the class
+print(class(fold_change_tbl))  # Should show: "tbl_df" "tbl" "data.frame"
+
+# 4. Use fully qualified function calls
+heatmap_data <- fold_change_tbl %>%
+  dplyr::select(-st_21_22_fold_change) %>%
+  tidyr::pivot_longer(
+    cols = -gene,
+    names_to = "stage",
+    values_to = "fold_change"
+  ) %>%
+  dplyr::mutate(
+    log2_fc = log2(fold_change),
+    direction = ifelse(fold_change > 1, "Up", "Down")
+  )
+
+ggplot(heatmap_data, aes(x = stage, y = gene, fill = log2_fc)) +
+  geom_tile(color = "white", linewidth = 0.5) +
+  scale_fill_gradient2(
+    low = "blue", 
+    mid = "white", 
+    high = "red",
+    midpoint = 0,
+    name = "Log2 Fold Change"
+  ) +
+  labs(title = "Gene Expression Changes Relative to st_21_22",
+       x = "Developmental Stage",
+       y = "Gene") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5, face = "bold")) +
+  coord_fixed()
+######################################################################
+## Time-seris of change
+######################################################################
+dd_results<-results(dds)
+deseq_results_22<-results(dds,name="stages_22_23_vs_21_22")
+resultsNames(dds)
+deseq_results <- lfcShrink(
+  dds, 
+  coef="stages_22_23_vs_21_22",
+  type = "apeglm",
+  res = deseq_results # The original DESeq2 results table
+)
 
 
-"grem1b" %in%rownames(gene_counts)
+###################
 
-
-head(results(dds, tidy=TRUE))
-glimmaMDS(dds)
-glimmaMA(dds_1,groups=dds_1$stages)
-glimmaVolcano(dds_lrt,groups=dds$stages)
-ncol(counts(dds_1))
-
-
-
+library("Mfuzz")
+counts<-counts(dds,normalized = TRUE)
+write.csv(counts,"rnaseq_counts.csv")
+counts.m<-as.matrix(counts)
+eset<-new('ExpressionSet', exprs=counts.m) ## eset is short for expression set
+cl<-mfuzz(eset,c=10,m=1.25)
+options(bitmapType = 'cairo')  # Uses Cairo instead of X11
+pdf("plot.pdf")  # Now plotting functions will work without X11
+mfuzz.plot(eset, cl = cl, mfrow = c(5, 2))
+dev.off()
+Mfuzzgui()
 ######################################################################
 ## ANAlYSIS of TPMs
 ######################################################################
@@ -272,22 +345,66 @@ vsd <- vst(dds, blind=FALSE)
 rld <- rlog(dds, blind=FALSE)
 head(assay(vsd), 3)
 ##############################################################
-## heatmap of the sample-to-sample distances and PCA
+## heatmap of the sample-to-sample distances and PCA (Euclidean distance)
 ##############################################################
 sampleDists <- dist(t(assay(vsd)))
 library("RColorBrewer")
 sampleDistMatrix <- as.matrix(sampleDists)
-rownames(sampleDistMatrix) <- paste(vsd$stages, vsd$sample_id, sep="-")
-colnames(sampleDistMatrix) <- NULL
+#rownames(sampleDistMatrix) <- paste(vsd$stages, vsd$sample_id, sep="-")
+#colnames(sampleDistMatrix) <- paste(vsd$stages, vsd$sample_id, sep="-")
 colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
 pheatmap(sampleDistMatrix,
          clustering_distance_rows=sampleDists,
          clustering_distance_cols=sampleDists,
-         col=colors)
+         col=colors,
+         main = "Sample-to-Sample Distances (Euclidean distance)")
 colnames(colData(dds))
 
+
+## (Pearson distance)
+# Assuming 'vsd' is your VST-transformed DESeqDataSet object
+# Calculate Pearson correlation matrix between samples
+pearson_cor <- cor(assay(vsd), method = "pearson")
+# Convert correlation to distance (1 - correlation)
+pearson_dist <- as.dist(1 - pearson_cor)
+# View the distance matrix
+head(as.matrix(pearson_dist), 3)
+colors <- colorRampPalette(rev(brewer.pal(9, "RdBu")))(255)
+pheatmap(as.matrix(pearson_dist),
+         clustering_distance_rows = pearson_dist,
+         clustering_distance_cols = pearson_dist,
+         col = colors,
+         main = "Sample-to-Sample Distances (Pearson)")
+
+
+
+##################################################
 ## Principal component plot of the samples
-plotPCA(vsd, intgroup=c("stages"))
+##################################################
+# Get PCA data
+pca_data <- DESeq2::plotPCA(vsd, intgroup = "stages", returnData = TRUE)
+percent_var <- round(100 * attr(pca_data, "percentVar"))
+
+# Define custom colors and shapes (adjust numbers to match your 'stages' levels)
+library(ggplot2)
+custom_colors <- c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", 
+                   "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf")  # 10 colors
+custom_shapes <- c(16, 17, 15, 18, 3, 4, 8, 11, 12, 13)  # 10 shapes
+
+# Plot
+ggplot(pca_data, aes(PC1, PC2, color = stages, shape = stages)) +
+  geom_point(size = 4, alpha = 0.8) +
+  geom_text(aes(label = name), vjust = 2, size = 3, color = "black", show.legend = FALSE) +
+  xlab(paste0("PC1: ", percent_var[1], "% variance")) +
+  ylab(paste0("PC2: ", percent_var[2], "% variance")) +
+  ggtitle("PCA of Samples by Stage") +
+  scale_color_manual(values = custom_colors) +  # Use custom colors
+  scale_shape_manual(values = custom_shapes) +  # Use custom shapes
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.title = element_blank())
+
+
+
 
 ## Mean-Variance QC plots
 counts<-counts(dds,normalized = TRUE)

@@ -7,7 +7,7 @@
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=zhouzeh2@msu.edu
 #SBATCH --output=/mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_bam/out/%x-%j.SLURMout
-echo “This script is to test Genrich.”
+echo “This script is to visualize fragments length and then call peaks with MACS2.”
 # Purge current modules and load required ones
 
 module purge
