@@ -15,25 +15,25 @@ module load picard/2.25.1-Java-11
 
 module load BEDTools/2.31.0-GCC-12.3.0
 module load parallel 
-module load R/4.3.0-GCC-12.3.0
+#module load R/4.3.0-GCC-12.3.0
 
-cd /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_peaks/narrowPeaks_raw
+cd /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_peaks/ncOCR_narrow_peaks
 # Run parallel Jaccard calculations
 parallel --joblog jaccard.log \
   "bedtools jaccard -a {1} -b {2} | awk 'NR>1' | cut -f 3 > {1}.{2}.jaccard" \
-  ::: *.narrowPeak ::: *.narrowPeak
+  ::: *.bed ::: *.bed
 
 # 1. Generate proper 3-column format
 find . -name "*.jaccard" -exec grep -H "." {} \; | \
   sed -e 's|^\./||' \
-      -e 's/\.narrowPeak\./\t/g' \
+      -e 's/\.bed\./\t/g' \
       -e 's/\.jaccard:/\t/' \
   > pairwise.fixed.txt
 
 # 2. Clean names and keep scores
 awk 'BEGIN{OFS="\t"} {
-    split($1, a, /\.narrowPeak/); 
-    split($2, b, /\.narrowPeak/);
+    split($1, a, /\.bed/); 
+    split($2, b, /\.bed/);
     gsub(/_sorted_no_mito.*/, "", a[1]);
     gsub(/_sorted_no_mito.*/, "", b[1]);
     print a[1], b[1], $3

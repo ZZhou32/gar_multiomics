@@ -1,0 +1,37 @@
+#!/bin/bash --login
+########## Define Resources Needed with SBATCH Lines ##########
+ 
+#SBATCH --time=15:00:00             # limit of wall clock time - how long the job will run (same as -t)
+#SBATCH --ntasks=1                  # number of tasks - how many tasks (nodes) that you require (same as -n)
+#SBATCH --cpus-per-task=1           # number of CPUs (or cores) per task (same as -c)
+#SBATCH --mem=40G                    # memory required per node - amount of memory (in bytes)
+#SBATCH --job-name annot      # you can give your job a name for easier identification (same as -J)
+ 
+ # Author: Olivia Fitch 
+ # Date: 7/10/25
+ #Title: grep exons and utrs from the annotation file
+ 
+ ########## Command Lines to Run ##########
+
+
+
+module purge
+module load BEDTools/2.31.0-GCC-12.3.0
+module load Homer/4.11-GCC-12.3.0
+
+cd /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_peaks/narrowPeaks_raw
+
+## this step is using HOMER
+mergePeaks -d given -venn venn_narrowPeaks_raw.txt *.narrowPeak > homer_merged_narrowPeaks_raw.txt
+
+
+cd ATAC_peaks/narrowPeaks_raw/
+REPLICATES=$(ls *.narrowPeak)
+mergePeaks -d given $REPLICATES -prefix merged_replicates
+
+
+#cat *_ncOCR.bed | sort -k 1,1 -k2,2n | bedtools merge > all_nc_merged.bed # cat to combine all files, sort by chr location and then merge peaks 
+
+
+scontrol show job $SLURM_JOB_ID     ### write job information to output file
+

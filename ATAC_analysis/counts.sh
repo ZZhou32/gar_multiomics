@@ -115,29 +115,29 @@ do
 done
 gzip ${OP}.counts
 
-# Split counts into TSS peaks and non-TSS peaks
-if [ -f "${PROMOTER_BED}" ] || [ -f "${PROMOTER_BED}.gz" ]
-then
-    echo "Splitting TSS/non-TSS peaks"
-    zcat ${OP}.counts.gz | head -n 1 > ${OP}.tss.counts
-    if [[ ${PROMOTER_BED} == *.gz ]]
-    then
-        bedtools intersect -wa -a <(zcat ${OP}.counts.gz | tail -n +2) -b <(zcat ${PROMOTER_BED}) | sort -k1,1V -k2,2n | uniq >> ${OP}.tss.counts
-    else
-        bedtools intersect -wa -a <(zcat ${OP}.counts.gz | tail -n +2) -b <(cat ${PROMOTER_BED}) | sort -k1,1V -k2,2n | uniq >> ${OP}.tss.counts
-    fi
+# # Split counts into TSS peaks and non-TSS peaks
+# if [ -f "${PROMOTER_BED}" ] || [ -f "${PROMOTER_BED}.gz" ]
+# then
+#     echo "Splitting TSS/non-TSS peaks"
+#     zcat ${OP}.counts.gz | head -n 1 > ${OP}.tss.counts
+#     if [[ ${PROMOTER_BED} == *.gz ]]
+#     then
+#         bedtools intersect -wa -a <(zcat ${OP}.counts.gz | tail -n +2) -b <(zcat ${PROMOTER_BED}) | sort -k1,1V -k2,2n | uniq >> ${OP}.tss.counts
+#     else
+#         bedtools intersect -wa -a <(zcat ${OP}.counts.gz | tail -n +2) -b <(cat ${PROMOTER_BED}) | sort -k1,1V -k2,2n | uniq >> ${OP}.tss.counts
+#     fi
     
-    zcat ${OP}.counts.gz | head -n 1 > ${OP}.notss.counts
-    if [[ ${PROMOTER_BED} == *.gz ]]
-    then
-        bedtools intersect -v -wa -a <(zcat ${OP}.counts.gz | tail -n +2) -b <(zcat ${PROMOTER_BED}) | sort -k1,1V -k2,2n | uniq >> ${OP}.notss.counts
-    else
-        bedtools intersect -v -wa -a <(zcat ${OP}.counts.gz | tail -n +2) -b <(cat ${PROMOTER_BED}) | sort -k1,1V -k2,2n | uniq >> ${OP}.notss.counts
-    fi
-    gzip ${OP}.tss.counts ${OP}.notss.counts
-else
-    echo "No promoter file found for ${ATYPE}, skipping TSS splitting"
-fi
+#     zcat ${OP}.counts.gz | head -n 1 > ${OP}.notss.counts
+#     if [[ ${PROMOTER_BED} == *.gz ]]
+#     then
+#         bedtools intersect -v -wa -a <(zcat ${OP}.counts.gz | tail -n +2) -b <(zcat ${PROMOTER_BED}) | sort -k1,1V -k2,2n | uniq >> ${OP}.notss.counts
+#     else
+#         bedtools intersect -v -wa -a <(zcat ${OP}.counts.gz | tail -n +2) -b <(cat ${PROMOTER_BED}) | sort -k1,1V -k2,2n | uniq >> ${OP}.notss.counts
+#     fi
+#     gzip ${OP}.tss.counts ${OP}.notss.counts
+# else
+#     echo "No promoter file found for ${ATYPE}, skipping TSS splitting"
+# fi
 
 # Deactivate environment
 source deactivate

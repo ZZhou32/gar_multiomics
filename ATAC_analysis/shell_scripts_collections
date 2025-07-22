@@ -19,6 +19,7 @@ chmod +x /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/script/ATAC_analysis/cou
 
 conda install -c bioconda  alfred
 
+## needs to sort and index before running the counts.sh
 for BAM in /mnt/research/FishEvoDevoGeno/raw_reads_4_tony/ATAC_bam/*_uniq_query.bam; do
   samtools sort -@ 4 -o ${BAM%.bam}.sorted.bam $BAM
   samtools index ${BAM%.bam}.sorted.bam
